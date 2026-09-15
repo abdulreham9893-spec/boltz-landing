@@ -23,16 +23,13 @@ function App() {
 
   const aboutSectionRef = useRef(null)
   const testimonialsRef = useRef(null)
-  const servicesRef = useRef(null)
-  const worksRef = useRef(null)
   const heroRef = useRef(null)
   const faqRef = useRef(null)
   const [faqVisible, setFaqVisible] = useState(false)
   const [isInView, setIsInView] = useState(false)
   const [testimonialsVisible, setTestimonialsVisible] = useState(false)
-  const [servicesVisible, setServicesVisible] = useState(false)
-  const [activeService, setActiveService] = useState(2)
   const [openFaq, setOpenFaq] = useState(-1)
+  const worksRef = useRef(null)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [heroBottomLoaded, setHeroBottomLoaded] = useState(false)
   const marqueeRef = useRef(null)
@@ -65,43 +62,6 @@ function App() {
   }, [location.pathname])
 
   useEffect(() => {
-    let target = 0
-    let current = 0
-    let raf = null
-
-    const animate = () => {
-      const isMobile = window.innerWidth <= 768
-      const lerpFactor = isMobile ? 0.12 : 0.085
-      const next = current + (target - current) * lerpFactor
-      current = Math.abs(target - next) < 0.0005 ? target : next
-      setScrollProgress(current)
-      if (Math.abs(target - current) < 0.0005) {
-        raf = null
-        return
-      }
-      raf = requestAnimationFrame(animate)
-    }
-
-    const handleScroll = () => {
-      if (!worksRef.current) return
-      const rect = worksRef.current.getBoundingClientRect()
-      const windowHeight = window.innerHeight
-      const total = rect.height - windowHeight
-
-      if (total <= 0) return
-      target = Math.min(Math.max(-rect.top / total, 0), 1)
-      if (!raf) raf = requestAnimationFrame(animate)
-    }
-
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-      return () => {
-        window.removeEventListener('scroll', handleScroll)
-        if (raf) cancelAnimationFrame(raf)
-      }
-    }, [location.pathname])
-
-  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -126,23 +86,6 @@ function App() {
       { threshold: 0.15 }
     )
     if (testimonialsRef.current) observer.observe(testimonialsRef.current)
-    return () => observer.disconnect()
-  }, [location.pathname])
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            requestAnimationFrame(() => setServicesVisible(true))
-          } else {
-            setServicesVisible(false)
-          }
-        })
-      },
-      { threshold: 0.15 }
-    )
-    if (servicesRef.current) observer.observe(servicesRef.current)
     return () => observer.disconnect()
   }, [location.pathname])
 
@@ -202,11 +145,57 @@ function App() {
   }, [location.pathname])
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveService((prev) => (prev + 1) % services.length)
-    }, 11000)
-    return () => clearInterval(timer)
-  }, [])
+    const root = worksRef.current
+    if (!root) return
+    let raf = 0
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const rect = root.getBoundingClientRect()
+        const vh = window.innerHeight
+        const total = rect.height - vh
+        if (total <= 0) return
+        setScrollProgress(clamp01(-rect.top / total))
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [location.pathname])
+
+  function clamp01(v) { return Math.max(0, Math.min(1, v)) }
+
+  function getCaseStyle(progress, i) {
+    const count = 3
+    const t = progress * count
+
+    function smoothstep(edge0, edge1, x) {
+      const v = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)))
+      return v * v * (3 - 2 * v)
+    }
+
+    const enter = smoothstep(i - 0.3, i, t)
+    const exit = i < count - 1 ? smoothstep(i + 0.3, i + 0.7, t) : 0
+    const presence = enter * (1 - exit)
+
+    const opacity = presence > 0.02 ? presence : 0
+    const scale = 0.85 + presence * 0.15
+    const y = exit * -60
+    const z = presence * 200
+    const brightness = 0.5 + presence * 0.5
+    const zIdx = Math.round(presence * 100 + i)
+
+    return {
+      transform: `translateZ(${z}px) translateY(${y}px) scale(${scale})`,
+      opacity: Math.round(opacity * 100) / 100,
+      zIndex: zIdx,
+      filter: `brightness(${Math.round(brightness * 10) / 10})`,
+    }
+  }
 
   const services = [
     {
@@ -292,18 +281,18 @@ function App() {
       role: 'Lead Designer',
       services: ['Website Design', 'Product Design', 'Branding', 'Development'],
       description: "A cinematic rental marketplace where every frame drives conversion.",
-      image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=1400&h=900&fit=crop',
-      glow: 'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.55), transparent 62%)',
+      image: '/screenrent.png',
+      glow: 'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.06), transparent 62%)',
     },
     {
       id: 2,
-      title: 'NOVATECH',
+      title: 'JOMI',
       year: '2024',
-      role: 'Creative Director',
+      role: 'Logo Design',
       services: ['Brand Identity', 'UI/UX Design', 'Web Development'],
       description: "Rebuilding a legacy brand into a sharp, scalable digital identity.",
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1400&h=900&fit=crop',
-      glow: 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.5), transparent 62%)',
+      image: '/1st-slide.png',
+      glow: 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.06), transparent 62%)',
     },
     {
       id: 3,
@@ -313,56 +302,9 @@ function App() {
       services: ['Motion Design', 'App Design', 'Branding'],
       description: "A motion-first product app with fluid, expressive interactions.",
       image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=1400&h=900&fit=crop',
-      glow: 'radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.5), transparent 62%)',
+      glow: 'radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.06), transparent 62%)',
     },
   ]
-
-  const clamp01 = (v) => Math.min(Math.max(v, 0), 1)
-  const easeInOut = (t) => t * t * (3 - 2 * t)
-
-  const getCaseStyle = (index) => {
-    const n = projects.length
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
-    const seg = 1 / n
-    const start = index * seg
-    const end = start + seg
-    const trans = seg * 0.62
-
-    const center = start + seg / 2
-    const fadeIn = index === 0
-      ? 1
-      : clamp01((scrollProgress - (center - seg / 2 - trans / 2)) / trans)
-    const fadeOut = index === n - 1
-      ? 1
-      : clamp01((center + seg / 2 + trans / 2 - scrollProgress) / trans)
-
-    const opacity = Math.min(fadeIn, fadeOut)
-    const easedIn = easeInOut(fadeIn)
-    const easedOut = easeInOut(fadeOut)
-
-    const incoming = 1 - easedIn
-    const outgoing = 1 - easedOut
-    const off = incoming + outgoing
-
-    const y = incoming * 90 - outgoing * 90
-    const z = isMobile ? 0 : -off * 340
-    const rotate = isMobile ? 0 : incoming * -4 + outgoing * -4
-    const rotX = isMobile ? 0 : incoming * 12 - outgoing * 12
-    const blur = isMobile ? off * 3 : off * 8
-    const brightness = isMobile ? 1 - off * 0.2 : 1 - off * 0.45
-    const scale = 1 - off * (isMobile ? 0.15 : 0.28)
-
-    return {
-      opacity,
-      incoming,
-      outgoing,
-      transform:
-        `translate3d(0px, ${y}px, ${z}px) ` +
-        `rotateX(${rotX}deg) rotateY(${rotate}deg) scale(${scale})`,
-      filter: `blur(${blur}px) brightness(${brightness})`,
-      zIndex: Math.round(opacity * 100),
-    }
-  }
 
   return (
     <Routes>
@@ -507,168 +449,136 @@ function App() {
         <div className="works-stack" ref={worksRef}>
           <div className="works-sticky">
             <div className="case-pin">
-              <div className="case-bg">
-                <div
-                  className="case-light"
-                  style={{ transform: `translateY(${scrollProgress * 140 - 70}px)` }}
-                />
-                <div className="case-vignette" />
-                <div className="case-grain" />
-              </div>
-
-              <div className="case-scene">
-                {projects.map((project, index) => {
-                  const s = getCaseStyle(index)
-                  const shift = 1 - s.opacity
-                  return (
-                    <div
-                      key={project.id}
-                      className="case-card"
-                      style={{
-                        opacity: s.opacity,
-                        transform: s.transform,
-                        filter: s.filter,
-                        zIndex: s.zIndex,
-                        visibility: s.opacity > 0.02 ? 'visible' : 'hidden',
-                      }}
-                    >
-                      <span className="case-counter">
-                        <span className="case-counter-num">0{index + 1}</span>
-                        <span className="case-counter-total">/ 0{projects.length}</span>
-                      </span>
-
-                      <div className="case-body">
-                        <div className="case-info">
-                          <div className="case-title-mask">
-                            <h3
-                              className="case-title"
-                              style={{ transform: `translateY(${shift * 60}px)` }}
-                            >
-                              {project.title}
-                            </h3>
-                          </div>
-                          <p
-                            className="case-desc"
-                            style={{ transform: `translateY(${shift * 26}px)` }}
-                          >
-                            {project.description}
-                          </p>
-                          <a href="#contact" className="case-link">
-                            View Case Study
-                            <span className="case-link-arrow">→</span>
-                          </a>
+              {projects.map((project, index) => {
+                const style = getCaseStyle(scrollProgress, index)
+                return (
+                  <div className="case-card" key={project.id} style={style}>
+                    <div className="case-bg">
+                      <div className="case-glow" style={{ background: project.glow, opacity: style.opacity }} />
+                      <div className="case-light" />
+                      <div className="case-vignette" />
+                      <div className="case-grain" />
+                    </div>
+                    <div className="case-counter">
+                      <span className="case-counter-num">0{index + 1}</span>
+                      <span className="case-counter-total">/0{projects.length}</span>
+                    </div>
+                    <div className="case-body">
+                      <div className="case-info">
+                        <div className="case-title-mask">
+                          <h3 className="case-title">{project.title}</h3>
                         </div>
-
-                        <div className="case-image-frame">
+                        <p className="case-desc">{project.description}</p>
+                        <a href="#contact" className="case-link">
+                          VIEW CASE STUDY <span className="case-link-arrow">→</span>
+                        </a>
+                      </div>
+                      <div className="case-image-frame">
+                        <img className="case-image" src={project.image} alt={project.title} />
+                        {index + 1 < projects.length && (
                           <img
-                            src={project.image}
-                            alt={project.title}
-                            className="case-image"
+                            className="case-image-peek"
+                            src={projects[index + 1].image}
+                            alt=""
+                            style={{
+                              clipPath: `inset(${Math.round(style.opacity * 100)}% 0 0 0)`,
+                              opacity: (1 - style.opacity) * 0.5,
+                            }}
                           />
-                          {projects[index + 1] && (() => {
-                            const peek = getCaseStyle(index + 1).incoming
-                            return (
-                              <img
-                                src={projects[index + 1].image}
-                                alt=""
-                                className="case-image-peek"
-                                style={{
-                                  transform: `translateY(${peek * 70}px) scale(${0.85 + (1 - peek) * 0.15})`,
-                                  filter: `blur(${peek * (window.innerWidth <= 768 ? 6 : 15)}px)`,
-                                  opacity: `${0.35 + (1 - peek) * 0.65}`,
-                                }}
-                              />
-                            )
-                          })()}
+                        )}
+                      </div>
+                      <div className="case-meta">
+                        <div className="case-meta-item">
+                          <span className="case-meta-label">Year</span>
+                          <span className="case-meta-value">{project.year}</span>
                         </div>
-
-                        <div className="case-meta">
-                          <div
-                            className="case-meta-item"
-                            style={{ transform: `translateY(${shift * 22}px)` }}
-                          >
-                            <span className="case-meta-label">Year</span>
-                            <span className="case-meta-value">{project.year}</span>
-                          </div>
-                          <div
-                            className="case-meta-item"
-                            style={{ transform: `translateY(${shift * 28}px)` }}
-                          >
-                            <span className="case-meta-label">Role</span>
-                            <span className="case-meta-value">{project.role}</span>
-                          </div>
-                          <div
-                            className="case-meta-item"
-                            style={{ transform: `translateY(${shift * 34}px)` }}
-                          >
-                            <span className="case-meta-label">Services</span>
-                            <div className="case-services">
-                              {project.services.map((service, i) => (
-                                <span key={i} className="case-service">{service}</span>
-                              ))}
-                            </div>
+                        <div className="case-meta-item">
+                          <span className="case-meta-label">Role</span>
+                          <span className="case-meta-value">{project.role}</span>
+                        </div>
+                        <div className="case-meta-item">
+                          <div className="case-services">
+                            {project.services.map((service, i) => (
+                              <span key={i} className="case-service">{service}</span>
+                            ))}
                           </div>
                         </div>
                       </div>
                     </div>
-                  )
-                })}
-              </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      <section id="services" className="services-section" ref={servicesRef}>
-        <div className={`services-header ${servicesVisible ? 'visible' : ''}`}>
-          <p className="services-kicker">(Services)</p>
-          <h2 className="services-title"><Letters text="WHAT WE DO" /></h2>
-          <div className="services-divider" />
+      <section className="capabilities-section">
+        <div className="capabilities-header visible">
+          <p className="capabilities-kicker">(Services)</p>
+          <h2 className="capabilities-title"><Letters text="WHAT WE DO" /></h2>
+          <div className="capabilities-divider" />
         </div>
+        <div className="capabilities-inner">
+          <div className="capabilities-accordion">
+            <div className="capability-row">
+              <span className="capability-num">01</span>
+              <div className="capability-content">
+                <h3 className="capability-title">Product design</h3>
+                <div className="capability-tags">
+                  <span>Saas Platform</span>
+                  <span className="capability-dot">•</span>
+                  <span>Web Platform</span>
+                  <span className="capability-dot">•</span>
+                  <span>Mobile App</span>
+                </div>
+                <div className="capability-expand">
+                  <p className="capability-desc">By working hand in hand, we'll turn your ideas into real, market-ready products. With a focus on your unique needs, we'll blend aesthetics and usability. Let's chat about how we can bring your ideas to life.</p>
+                  <a href="#contact" className="capability-btn">DISCUSS PROJECT</a>
+                </div>
+              </div>
+            </div>
 
-        <div className={`services-tabs ${servicesVisible ? 'visible' : ''}`}>
-          {services.map((s, i) => (
-            <button
-              key={i}
-              className={`service-tab ${activeService === i ? 'active' : ''}`}
-              onClick={() => setActiveService(i)}
-            >
-              {activeService === i && <span className="tab-dot" />}
-              {s.label}
-            </button>
-          ))}
-        </div>
+            <div className="capability-row">
+              <span className="capability-num">02</span>
+              <div className="capability-content">
+                <h3 className="capability-title">UX Design</h3>
+                <div className="capability-tags">
+                  <span>UX Audit</span>
+                  <span className="capability-dot">•</span>
+                  <span>Analysis</span>
+                  <span className="capability-dot">•</span>
+                  <span>Research</span>
+                </div>
+                <div className="capability-expand">
+                  <p className="capability-desc">We craft intuitive, user-centered experiences through research-driven design. From audits to full redesigns, we ensure every interaction feels effortless and purposeful.</p>
+                  <a href="#contact" className="capability-btn">DISCUSS PROJECT</a>
+                </div>
+              </div>
+            </div>
 
-        <div className="services-showcase">
-          <div className={`services-marquee-bg ${servicesVisible ? 'visible' : ''}`} key={activeService}>
-            <div className="services-marquee-row">
-              <div className="services-marquee-track">
-                {[0, 1, 2, 3].map((j) => (
-                  <span key={j} className="services-marquee-text">
-                    {services[activeService].marquee}
-                    <span className="services-marquee-sep"> — </span>
-                  </span>
-                ))}
+            <div className="capability-row">
+              <span className="capability-num">03</span>
+              <div className="capability-content">
+                <h3 className="capability-title">Development</h3>
+                <div className="capability-tags">
+                  <span>Net Core</span>
+                  <span className="capability-dot">•</span>
+                  <span>PHP</span>
+                  <span className="capability-dot">•</span>
+                  <span>React</span>
+                  <span className="capability-dot">•</span>
+                  <span>Node.js</span>
+                  <span className="capability-dot">•</span>
+                  <span>Angular</span>
+                </div>
+                <div className="capability-expand">
+                  <p className="capability-desc">We build scalable, performant web applications using modern tech stacks. From MVPs to enterprise platforms, our code is clean, tested, and production-ready.</p>
+                  <a href="#contact" className="capability-btn">DISCUSS PROJECT</a>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className={`services-preview ${servicesVisible ? 'visible' : ''}`}>
-            <img
-              src={services[activeService].image}
-              alt={services[activeService].label}
-            />
-          </div>
-        </div>
-
-        <p className="services-desc" key={`desc-${activeService}`}>
-          {services[activeService].description}
-        </p>
-
-        <div className="services-tags" key={`tags-${activeService}`}>
-          {services[activeService].tags.map((tag, i) => (
-            <span key={i} className="services-tag">{tag}</span>
-          ))}
         </div>
       </section>
 
