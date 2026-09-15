@@ -9,7 +9,7 @@ function Navbar() {
   return (
     <>
       <nav className="navbar">
-        <Link to="/" className="logo">BOLTZ</Link>
+        <Link to="/" className="logo"><img src="/nav-logo.png" alt="BOLTZ" className="logo-img" /></Link>
         <div className="nav-links">
           {isHome ? (
             <>

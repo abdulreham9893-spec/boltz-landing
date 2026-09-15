@@ -27,6 +27,12 @@
   font-weight: 400;
 }
 
+.logo-img {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
 .nav-links {
   display: flex;
   gap: 40px;
@@ -1431,21 +1437,22 @@
 /* Meta column */
 .case-meta {
   grid-column: 3;
-  justify-self: end;
+  justify-self: start;
   width: 100%;
   max-width: 300px;
   margin-right: 8vw;
-  text-align: right;
+  margin-left: 2vw;
+  text-align: left;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 24px;
 }
 
 .case-meta-item {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 6px;
   will-change: transform;
 }
@@ -1466,7 +1473,7 @@
 .case-services {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 4px;
 }
 
@@ -2047,6 +2054,10 @@
     flex-wrap: wrap;
     font-size: 11px;
     gap: 4px 6px;
+  }
+
+  .capability-expand {
+    align-items: flex-start;
   }
 
   .capability-desc {
