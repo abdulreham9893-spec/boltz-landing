@@ -36,6 +36,33 @@ function App() {
   const [marqueeVisible, setMarqueeVisible] = useState(false)
   const contactRef = useRef(null)
   const [contactVisible, setContactVisible] = useState(false)
+  const servicesCarouselRef = useRef(null)
+  const [showLeftArrow, setShowLeftArrow] = useState(false)
+  const [showRightArrow, setShowRightArrow] = useState(true)
+
+  const serviceCards = [
+    { num: '01', icon: '◻', title: 'Framer Development', desc: 'Build fast, responsive, and visually stunning websites with expert Framer development.' },
+    { num: '02', icon: '◎', title: 'Figma Design', desc: 'Create clean, modern and conversion-focused interfaces with professional Figma design.' },
+    { num: '03', icon: '⬡', title: 'Website Security', desc: 'Protect your website with reliable security, monitoring and performance optimization.' },
+    { num: '04', icon: '△', title: 'Web Development', desc: 'Build fast, scalable and responsive websites tailored to your business.' },
+    { num: '05', icon: '◇', title: 'UI/UX Design', desc: 'Design intuitive digital experiences that are simple, modern and user-friendly.' },
+    { num: '06', icon: '⬢', title: 'Website Optimization', desc: 'Improve speed, responsiveness, accessibility and overall website performance.' },
+  ]
+
+  function scrollServiceCards(dir) {
+    const el = servicesCarouselRef.current
+    if (!el) return
+    const cardWidth = el.querySelector('.services-carousel-card')?.offsetWidth || 340
+    const gap = 24
+    el.scrollBy({ left: dir === 'right' ? cardWidth + gap : -(cardWidth + gap), behavior: 'smooth' })
+  }
+
+  function updateCarouselArrows() {
+    const el = servicesCarouselRef.current
+    if (!el) return
+    setShowLeftArrow(el.scrollLeft > 10)
+    setShowRightArrow(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setHeroBottomLoaded(true), 100)
@@ -142,6 +169,73 @@ function App() {
     )
     if (contactRef.current) observer.observe(contactRef.current)
     return () => observer.disconnect()
+  }, [location.pathname])
+
+  useEffect(() => {
+    const el = servicesCarouselRef.current
+    if (!el) return
+    updateCarouselArrows()
+    el.addEventListener('scroll', updateCarouselArrows, { passive: true })
+    window.addEventListener('resize', updateCarouselArrows)
+
+    let isDown = false
+    let startX = 0
+    let startScrollLeft = 0
+    let moved = false
+
+    const onMouseDown = (e) => {
+      isDown = true
+      moved = false
+      startX = e.pageX - el.offsetLeft
+      startScrollLeft = el.scrollLeft
+      el.style.cursor = 'grabbing'
+      el.style.scrollSnapType = 'none'
+    }
+
+    const onMouseLeave = () => {
+      isDown = false
+      el.style.cursor = ''
+      el.style.scrollSnapType = 'x mandatory'
+    }
+
+    const onMouseUp = () => {
+      isDown = false
+      el.style.cursor = ''
+      el.style.scrollSnapType = 'x mandatory'
+    }
+
+    const onMouseMove = (e) => {
+      if (!isDown) return
+      e.preventDefault()
+      const x = e.pageX - el.offsetLeft
+      const walk = (x - startX) * 1.2
+      if (Math.abs(walk) > 3) moved = true
+      el.scrollLeft = startScrollLeft - walk
+    }
+
+    const onClickCapture = (e) => {
+      if (moved) {
+        e.preventDefault()
+        e.stopPropagation()
+        moved = false
+      }
+    }
+
+    el.addEventListener('mousedown', onMouseDown)
+    el.addEventListener('mouseleave', onMouseLeave)
+    el.addEventListener('mouseup', onMouseUp)
+    el.addEventListener('mousemove', onMouseMove)
+    el.addEventListener('click', onClickCapture, true)
+
+    return () => {
+      el.removeEventListener('scroll', updateCarouselArrows)
+      window.removeEventListener('resize', updateCarouselArrows)
+      el.removeEventListener('mousedown', onMouseDown)
+      el.removeEventListener('mouseleave', onMouseLeave)
+      el.removeEventListener('mouseup', onMouseUp)
+      el.removeEventListener('mousemove', onMouseMove)
+      el.removeEventListener('click', onClickCapture, true)
+    }
   }, [location.pathname])
 
   useEffect(() => {
@@ -517,68 +611,43 @@ function App() {
         <div className="capabilities-header visible">
           <p className="capabilities-kicker">(Services)</p>
           <h2 className="capabilities-title"><Letters text="WHAT WE DO" /></h2>
-          <div className="capabilities-divider" />
         </div>
-        <div className="capabilities-inner">
-          <div className="capabilities-accordion">
-            <div className="capability-row">
-              <span className="capability-num">01</span>
-              <div className="capability-content">
-                <h3 className="capability-title">Product design</h3>
-                <div className="capability-tags">
-                  <span>Saas Platform</span>
-                  <span className="capability-dot">•</span>
-                  <span>Web Platform</span>
-                  <span className="capability-dot">•</span>
-                  <span>Mobile App</span>
-                </div>
-                <div className="capability-expand">
-                  <p className="capability-desc">By working hand in hand, we'll turn your ideas into real, market-ready products. With a focus on your unique needs, we'll blend aesthetics and usability. Let's chat about how we can bring your ideas to life.</p>
-                  <a href="#contact" className="capability-btn">DISCUSS PROJECT</a>
-                </div>
-              </div>
-            </div>
+      </section>
 
-            <div className="capability-row">
-              <span className="capability-num">02</span>
-              <div className="capability-content">
-                <h3 className="capability-title">UX Design</h3>
-                <div className="capability-tags">
-                  <span>UX Audit</span>
-                  <span className="capability-dot">•</span>
-                  <span>Analysis</span>
-                  <span className="capability-dot">•</span>
-                  <span>Research</span>
+      <section className="services-carousel-section">
+        <div className="services-carousel-wrapper">
+          <div className="services-carousel-track" ref={servicesCarouselRef}>
+            {serviceCards.map((card, i) => (
+              <div className="services-carousel-card" key={i}>
+                <div className="scc-top">
+                  <span className="scc-num">{card.num}</span>
+                  <span className="scc-icon">{card.icon}</span>
                 </div>
-                <div className="capability-expand">
-                  <p className="capability-desc">We craft intuitive, user-centered experiences through research-driven design. From audits to full redesigns, we ensure every interaction feels effortless and purposeful.</p>
-                  <a href="#contact" className="capability-btn">DISCUSS PROJECT</a>
+                <div className="scc-mid">
+                  <h3 className="scc-title">{card.title}</h3>
+                  <p className="scc-desc">{card.desc}</p>
                 </div>
-              </div>
-            </div>
-
-            <div className="capability-row">
-              <span className="capability-num">03</span>
-              <div className="capability-content">
-                <h3 className="capability-title">Development</h3>
-                <div className="capability-tags">
-                  <span>Net Core</span>
-                  <span className="capability-dot">•</span>
-                  <span>PHP</span>
-                  <span className="capability-dot">•</span>
-                  <span>React</span>
-                  <span className="capability-dot">•</span>
-                  <span>Node.js</span>
-                  <span className="capability-dot">•</span>
-                  <span>Angular</span>
-                </div>
-                <div className="capability-expand">
-                  <p className="capability-desc">We build scalable, performant web applications using modern tech stacks. From MVPs to enterprise platforms, our code is clean, tested, and production-ready.</p>
-                  <a href="#contact" className="capability-btn">DISCUSS PROJECT</a>
+                <div className="scc-bottom">
+                  <a href="#contact" className="scc-link">Learn more →</a>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
+
+          <button
+            className={`scc-arrow scc-arrow-left ${showLeftArrow ? 'visible' : ''}`}
+            onClick={() => scrollServiceCards('left')}
+            aria-label="Scroll left"
+          >
+            ←
+          </button>
+          <button
+            className={`scc-arrow scc-arrow-right ${showRightArrow ? 'visible' : ''}`}
+            onClick={() => scrollServiceCards('right')}
+            aria-label="Scroll right"
+          >
+            →
+          </button>
         </div>
       </section>
 

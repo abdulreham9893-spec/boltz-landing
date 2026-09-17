@@ -1518,6 +1518,7 @@
 
 .capabilities-header {
   padding: 100px 60px 0;
+  text-align: center;
 }
 
 .capabilities-kicker {
@@ -1537,12 +1538,6 @@
   letter-spacing: 4px;
   margin: 0 0 30px;
   line-height: 1;
-}
-
-.capabilities-divider {
-  width: 100%;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
 }
 
 .capabilities-inner {
@@ -1594,6 +1589,7 @@
   color: #ffffff;
   margin: 0;
   line-height: 1;
+  text-transform: uppercase;
 }
 
 .capability-tags {
@@ -3224,5 +3220,205 @@
 
   .services-showcase-last {
     margin-top: 40px;
+  }
+}
+
+/* ── Services Carousel ─────────────────────────────────────────── */
+
+.services-carousel-section {
+  padding: 80px 0 60px;
+  background: #0a0a0a;
+  overflow: hidden;
+}
+
+/* ── Carousel wrapper + arrows ────────────────────────────────── */
+
+.services-carousel-wrapper {
+  position: relative;
+  padding: 0 24px;
+}
+
+.services-carousel-track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 20px 0 40px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  cursor: grab;
+}
+
+.services-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.scc-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(10,10,10,0.85);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+  z-index: 10;
+}
+
+.scc-arrow:hover {
+  background: rgba(139,92,246,0.2);
+  border-color: #8B5CF6;
+}
+
+.scc-arrow.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scc-arrow-left {
+  left: 12px;
+}
+
+.scc-arrow-right {
+  right: 12px;
+}
+
+/* ── Individual card ──────────────────────────────────────────── */
+
+.services-carousel-card {
+  flex: 0 0 340px;
+  min-height: 320px;
+  background: #0a0a0a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  scroll-snap-align: start;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease, border-color 0.4s ease;
+  cursor: default;
+}
+
+.services-carousel-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px -12px rgba(0,0,0,0.8);
+  border-color: rgba(255,255,255,0.18);
+}
+
+/* Top row: number + icon */
+.scc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 36px;
+}
+
+.scc-num {
+  font-family: "Tanker", "Tanker Placeholder", sans-serif;
+  font-size: 42px;
+  color: rgba(255,255,255,0.1);
+  line-height: 1;
+}
+
+.scc-icon {
+  font-size: 28px;
+  color: rgba(255,255,255,0.2);
+}
+
+/* Middle: title + desc */
+.scc-mid {
+  flex: 1;
+}
+
+.scc-title {
+  font-family: "Manrope", "Manrope Placeholder", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.scc-desc {
+  font-family: "Manrope", "Manrope Placeholder", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #9CA3AF;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Bottom link */
+.scc-bottom {
+  margin-top: 32px;
+}
+
+.scc-link {
+  font-family: "Manrope", "Manrope Placeholder", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.scc-link:hover {
+  color: #8B5CF6;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .services-carousel-section {
+    padding: 60px 0 40px;
+  }
+
+  .services-carousel-wrapper {
+    padding: 0 16px;
+  }
+
+  .services-carousel-track {
+    gap: 16px;
+    padding: 12px 0 32px;
+  }
+
+  .services-carousel-card {
+    flex: 0 0 82vw;
+    min-width: 0;
+    max-width: 400px;
+    min-height: 280px;
+    padding: 26px 22px;
+  }
+
+  .scc-num {
+    font-size: 34px;
+  }
+
+  .scc-icon {
+    font-size: 22px;
+  }
+
+  .scc-title {
+    font-size: 18px;
+  }
+
+  .scc-desc {
+    font-size: 13px;
+  }
+
+  .scc-arrow {
+    display: none;
   }
 }
