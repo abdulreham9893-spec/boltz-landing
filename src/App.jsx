@@ -49,6 +49,23 @@ function App() {
     { num: '06', icon: '⬢', title: 'Website Optimization', desc: 'Improve speed, responsiveness, accessibility and overall website performance.' },
   ]
 
+  const testimonialData = [
+    {
+      num: '01',
+      text: 'They transformed our outdated site into a conversion machine. Professional, creative, and on-time! Communication was seamless — I felt heard and supported at every stage of the project.',
+      name: 'Isa Kose',
+      role: 'Founder, Hypnose Praktijk',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face',
+    },
+    {
+      num: '02',
+      text: 'They helped us bring our new brand vision to life with a full branding kit and website design. They stayed aligned with our evolving direction and were flexible throughout the process, making it easy to adapt and refine as we went. We\'d confidently partner again and would recommend.',
+      name: 'Keefe Dashiell',
+      role: 'Founder, After Life Initiative',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=face',
+    },
+  ]
+
   function scrollServiceCards(dir) {
     const el = servicesCarouselRef.current
     if (!el) return
@@ -482,56 +499,40 @@ function App() {
             </span>
           ))}
         </h2>
-        <div className={`tags-container ${isInView ? 'slide-in' : ''}`}>
-          {tags.map((tag, index) => (
-            <span key={index} className="tag">
-              <span className="tag-icon">{tag.icon}</span>
-              {tag.label}
-            </span>
-          ))}
+        <div className="pills-container">
+          <div className="pills-row">
+            <div className="pill"><span className="pill-icon">✦</span><span className="pill-label">Branding</span></div>
+            <div className="pill"><span className="pill-icon">◎</span><span className="pill-label">Logo</span></div>
+            <div className="pill"><span className="pill-icon">◎</span><span className="pill-label">Website</span></div>
+          </div>
+          <div className="pills-row">
+            <div className="pill"><span className="pill-icon">♧</span><span className="pill-label">Motion Design</span></div>
+            <div className="pill"><span className="pill-icon">◇</span><span className="pill-label">UI/UX</span></div>
+            <div className="pill"><span className="pill-icon">◎</span><span className="pill-label">CMS Website</span></div>
+          </div>
         </div>
       </section>
 
-      <section className={`testimonials-section ${testimonialsVisible ? 'visible' : ''}`} ref={testimonialsRef}>
-        <p className="why-text">(Why clients love us)</p>
-        <h2 className="testimonials-title">TESTIMONIALS</h2>
-        <div className="testimonials-content">
-          <div className="stats-card">
-            <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=600&h=700&fit=crop" alt="Stats background" className={`stats-bg ${testimonialsVisible ? 'img-visible' : ''}`} />
-            <div className="stats-overlay">
-              <div className="stat-item">
-                <span className="stat-number">26+</span>
-                <span className="stat-label">Finalized Projects</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">400%</span>
-                <span className="stat-label">Increased Conversion Rate</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">20</span>
-                <span className="stat-label">Organic Traffic</span>
-              </div>
-            </div>
-          </div>
-          <div className="testimonial-card">
-            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&h=600&fit=crop" alt="Laptop on sand" className={`testimonial-bg ${testimonialsVisible ? 'img-visible' : ''}`} />
-            <div className="testimonial-overlay">
-              <span className="slide-counter">01 / 03</span>
-              <div className="testimonial-text-container">
-                <p className="testimonial-quote">
-                  "FRANKLIN TURNED OUR IDEAS INTO A SHARP, CLEAN BRAND. FAST, EASY, AND RIGHT ON POINT."
-                </p>
-                <div className="testimonial-author">
-                  <span className="author-name">Ethan Moore</span>
-                  <span className="author-role">Co-founder, NovaTech</span>
+      <section className="testimonials-section" ref={testimonialsRef}>
+        <div className={`testimonials-header ${testimonialsVisible ? 'visible' : ''}`}>
+          <p className="why-text">(Why clients love us)</p>
+          <h2 className="testimonials-title"><Letters text="TESTIMONIALS" /></h2>
+        </div>
+        <div className="testimonials-grid">
+          {testimonialData.map((t, i) => (
+            <div className={`testimonial-card-new ${testimonialsVisible ? 'visible' : ''}`} key={i} style={{ transitionDelay: `${i * 0.15}s` }}>
+              <span className="tc-num">{t.num}</span>
+              <span className="tc-quote-mark">&#x201C;</span>
+              <p className="tc-text">{t.text}</p>
+              <div className="tc-author">
+                <img className="tc-avatar" src={t.avatar} alt={t.name} />
+                <div className="tc-author-info">
+                  <span className="tc-name">{t.name}</span>
+                  <span className="tc-role">↳ {t.role}</span>
                 </div>
               </div>
-              <div className="nav-arrows">
-                <button className="arrow-btn">&lt;</button>
-                <button className="arrow-btn">&gt;</button>
-              </div>
             </div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -547,12 +548,6 @@ function App() {
                 const style = getCaseStyle(scrollProgress, index)
                 return (
                   <div className="case-card" key={project.id} style={style}>
-                    <div className="case-bg">
-                      <div className="case-glow" style={{ background: project.glow, opacity: style.opacity }} />
-                      <div className="case-light" />
-                      <div className="case-vignette" />
-                      <div className="case-grain" />
-                    </div>
                     <div className="case-counter">
                       <span className="case-counter-num">0{index + 1}</span>
                       <span className="case-counter-total">/0{projects.length}</span>
