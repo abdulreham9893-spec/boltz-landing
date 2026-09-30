@@ -13,6 +13,31 @@ function Services() {
   const [openFaq, setOpenFaq] = useState(-1)
   const [contactVisible, setContactVisible] = useState(false)
   const [whatVisible, setWhatVisible] = useState(false)
+  const [formStatus, setFormStatus] = useState('idle')
+  const [formError, setFormError] = useState('')
+
+  function handleContactSubmit(e) {
+    e.preventDefault()
+    if (formStatus === 'sending') return
+    const form = e.target
+    setFormStatus('sending')
+    setFormError('')
+    fetch('/send.php', { method: 'POST', body: new FormData(form) })
+      .then(async (res) => {
+        let data = {}
+        try { data = await res.json() } catch { /* non-JSON response */ }
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Something went wrong. Please try again.')
+        }
+        setFormStatus('success')
+        form.reset()
+        setTimeout(() => setFormStatus('idle'), 6000)
+      })
+      .catch((err) => {
+        setFormStatus('error')
+        setFormError(err.message || 'Failed to send. Please email helloboltz@gmail.com directly.')
+      })
+  }
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -355,27 +380,46 @@ function Services() {
               </div>
 
               <div className="contact-right">
-              <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
+              <form className="contact-form" onSubmit={handleContactSubmit}>
                 <div className="form-field">
                   <label>Your Name</label>
-                  <input type="text" placeholder="Enter your Name" />
+                  <input type="text" name="name" placeholder="Enter your Name" required />
                 </div>
                 <div className="form-field">
                   <label>Your Email</label>
-                  <input type="email" placeholder="Enter the Email" />
+                  <input type="email" name="email" placeholder="Enter the Email" required />
                 </div>
                 <div className="form-field">
                   <label>Project Description</label>
                   <textarea
+                    name="message"
                     placeholder="Type Here..."
                     rows="1"
+                    required
                     onInput={(e) => {
                       e.target.style.height = 'auto'
                       e.target.style.height = e.target.scrollHeight + 'px'
                     }}
                   />
                 </div>
-                <button type="submit" className="contact-submit">SEND NOW!</button>
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="hp-field"
+                />
+                <button type="submit" className="contact-submit" disabled={formStatus === 'sending'}>
+                  {formStatus === 'sending' ? 'SENDING...' : 'SEND NOW!'}
+                </button>
+                {formStatus !== 'idle' && (
+                  <p className={`form-status ${formStatus}`} role="status">
+                    {formStatus === 'sending' && 'Sending your message...'}
+                    {formStatus === 'success' && "Message sent! We'll get back to you soon."}
+                    {formStatus === 'error' && formError}
+                  </p>
+                )}
               </form>
               </div>
             </div>
@@ -418,8 +462,8 @@ function Services() {
             <h4 className="footer-heading">Social</h4>
             <nav className="footer-links">
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">TWITTER(X)</a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LINKEDIN</a>
-              <a href="https://dribbble.com" target="_blank" rel="noopener noreferrer">DRIBBLE</a>
+              <a href="https://www.linkedin.com/company/boltzmakeitmad/" target="_blank" rel="noopener noreferrer">LINKEDIN</a>
+              <a href="https://www.instagram.com/boltzdot/" target="_blank" rel="noopener noreferrer">INSTAGRAM</a>
             </nav>
           </div>
 

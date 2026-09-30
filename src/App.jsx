@@ -39,6 +39,34 @@ function App() {
   const servicesCarouselRef = useRef(null)
   const [showLeftArrow, setShowLeftArrow] = useState(false)
   const [showRightArrow, setShowRightArrow] = useState(true)
+  const shcTrackRef = useRef(null)
+  const [showShcLeft, setShowShcLeft] = useState(false)
+  const [showShcRight, setShowShcRight] = useState(true)
+  const [formStatus, setFormStatus] = useState('idle')
+  const [formError, setFormError] = useState('')
+
+  function handleContactSubmit(e) {
+    e.preventDefault()
+    if (formStatus === 'sending') return
+    const form = e.target
+    setFormStatus('sending')
+    setFormError('')
+    fetch('/send.php', { method: 'POST', body: new FormData(form) })
+      .then(async (res) => {
+        let data = {}
+        try { data = await res.json() } catch { /* non-JSON response */ }
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Something went wrong. Please try again.')
+        }
+        setFormStatus('success')
+        form.reset()
+        setTimeout(() => setFormStatus('idle'), 6000)
+      })
+      .catch((err) => {
+        setFormStatus('error')
+        setFormError(err.message || 'Failed to send. Please email helloboltz@gmail.com directly.')
+      })
+  }
 
   const serviceCards = [
     { num: '01', icon: '◻', title: 'Framer Development', desc: 'Build fast, responsive, and visually stunning websites with expert Framer development.' },
@@ -79,6 +107,21 @@ function App() {
     if (!el) return
     setShowLeftArrow(el.scrollLeft > 10)
     setShowRightArrow(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
+  }
+
+  function scrollShcCards(dir) {
+    const el = shcTrackRef.current
+    if (!el) return
+    const cardWidth = el.querySelector('.shc-card')?.offsetWidth || 380
+    const gap = 20
+    el.scrollBy({ left: dir === 'right' ? cardWidth + gap : -(cardWidth + gap), behavior: 'smooth' })
+  }
+
+  function updateShcArrows() {
+    const el = shcTrackRef.current
+    if (!el) return
+    setShowShcLeft(el.scrollLeft > 10)
+    setShowShcRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10)
   }
 
   useEffect(() => {
@@ -247,6 +290,73 @@ function App() {
     return () => {
       el.removeEventListener('scroll', updateCarouselArrows)
       window.removeEventListener('resize', updateCarouselArrows)
+      el.removeEventListener('mousedown', onMouseDown)
+      el.removeEventListener('mouseleave', onMouseLeave)
+      el.removeEventListener('mouseup', onMouseUp)
+      el.removeEventListener('mousemove', onMouseMove)
+      el.removeEventListener('click', onClickCapture, true)
+    }
+  }, [location.pathname])
+
+  useEffect(() => {
+    const el = shcTrackRef.current
+    if (!el) return
+    updateShcArrows()
+    el.addEventListener('scroll', updateShcArrows, { passive: true })
+    window.addEventListener('resize', updateShcArrows)
+
+    let isDown = false
+    let startX = 0
+    let startScrollLeft = 0
+    let moved = false
+
+    const onMouseDown = (e) => {
+      isDown = true
+      moved = false
+      startX = e.pageX - el.offsetLeft
+      startScrollLeft = el.scrollLeft
+      el.style.cursor = 'grabbing'
+      el.style.scrollSnapType = 'none'
+    }
+
+    const onMouseLeave = () => {
+      isDown = false
+      el.style.cursor = ''
+      el.style.scrollSnapType = 'x mandatory'
+    }
+
+    const onMouseUp = () => {
+      isDown = false
+      el.style.cursor = ''
+      el.style.scrollSnapType = 'x mandatory'
+    }
+
+    const onMouseMove = (e) => {
+      if (!isDown) return
+      e.preventDefault()
+      const x = e.pageX - el.offsetLeft
+      const walk = (x - startX) * 1.2
+      if (Math.abs(walk) > 3) moved = true
+      el.scrollLeft = startScrollLeft - walk
+    }
+
+    const onClickCapture = (e) => {
+      if (moved) {
+        e.preventDefault()
+        e.stopPropagation()
+        moved = false
+      }
+    }
+
+    el.addEventListener('mousedown', onMouseDown)
+    el.addEventListener('mouseleave', onMouseLeave)
+    el.addEventListener('mouseup', onMouseUp)
+    el.addEventListener('mousemove', onMouseMove)
+    el.addEventListener('click', onClickCapture, true)
+
+    return () => {
+      el.removeEventListener('scroll', updateShcArrows)
+      window.removeEventListener('resize', updateShcArrows)
       el.removeEventListener('mousedown', onMouseDown)
       el.removeEventListener('mouseleave', onMouseLeave)
       el.removeEventListener('mouseup', onMouseUp)
@@ -610,35 +720,67 @@ function App() {
       </section>
 
       <section className="services-carousel-section">
-        <div className="services-carousel-wrapper">
-          <div className="services-carousel-track" ref={servicesCarouselRef}>
-            {serviceCards.map((card, i) => (
-              <div className="services-carousel-card" key={i}>
-                <div className="scc-top">
-                  <span className="scc-num">{card.num}</span>
-                  <span className="scc-icon">{card.icon}</span>
-                </div>
-                <div className="scc-mid">
-                  <h3 className="scc-title">{card.title}</h3>
-                  <p className="scc-desc">{card.desc}</p>
-                </div>
-                <div className="scc-bottom">
-                  <a href="#contact" className="scc-link">Learn more →</a>
-                </div>
-              </div>
-            ))}
+        <div className="shc-wrapper">
+          <div className="service-hover-cards" ref={shcTrackRef}>
+            <div className="shc-card">
+            <div className="shc-image">
+              <img src="/mockup.jpg" alt="UI/UX Design" loading="lazy" />
+            </div>
+            <div className="shc-overlay" />
+            <img className="shc-icon-img" src="/icon-uiux.png" alt="" />
+            <div className="shc-content">
+              <h3 className="shc-title">UI/UX Design</h3>
+              <p className="shc-desc">We design intuitive UI &amp; UX that are visually consistent, and effortless to use.</p>
+            </div>
+          </div>
+
+          <div className="shc-card">
+            <div className="shc-image">
+              <img src="/Service.jpg" alt="SaaS Design" loading="lazy" />
+            </div>
+            <div className="shc-overlay" />
+            <img className="shc-icon-img" src="/icon-saas.png" alt="" />
+            <div className="shc-content">
+              <h3 className="shc-title">SaaS Design</h3>
+              <p className="shc-desc">We redesign dashboards, onboarding, and flows around the moments users drop off.</p>
+            </div>
+          </div>
+
+          <div className="shc-card">
+            <div className="shc-image">
+              <img src="/screenrent.png" alt="Framer Website" loading="lazy" />
+            </div>
+            <div className="shc-overlay" />
+            <img className="shc-icon-img" src="/icon-framer.png" alt="" />
+            <div className="shc-content">
+              <h3 className="shc-title">Framer Website</h3>
+              <p className="shc-desc">We build custom Framer sites with smooth animations and responsive design.</p>
+            </div>
+          </div>
+
+          <div className="shc-card">
+            <div className="shc-image">
+              <img src="/m1.png" alt="Strategic Brand Design" loading="lazy" />
+            </div>
+            <div className="shc-overlay" />
+            <img className="shc-icon-img" src="/icon-brand.png" alt="" />
+            <div className="shc-content">
+              <h3 className="shc-title">STRATEGIC BRAND DESIGN</h3>
+              <p className="shc-desc">We craft distinctive brand identities with strategic design and visual consistency.</p>
+            </div>
+          </div>
           </div>
 
           <button
-            className={`scc-arrow scc-arrow-left ${showLeftArrow ? 'visible' : ''}`}
-            onClick={() => scrollServiceCards('left')}
+            className={`scc-arrow shc-arrow-left ${showShcLeft ? 'visible' : ''}`}
+            onClick={() => scrollShcCards('left')}
             aria-label="Scroll left"
           >
             ←
           </button>
           <button
-            className={`scc-arrow scc-arrow-right ${showRightArrow ? 'visible' : ''}`}
-            onClick={() => scrollServiceCards('right')}
+            className={`scc-arrow shc-arrow-right ${showShcRight ? 'visible' : ''}`}
+            onClick={() => scrollShcCards('right')}
             aria-label="Scroll right"
           >
             →
@@ -718,27 +860,46 @@ function App() {
               </div>
 
               <div className="contact-right">
-              <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
+              <form className="contact-form" onSubmit={handleContactSubmit}>
                 <div className="form-field">
                   <label>Your Name</label>
-                  <input type="text" placeholder="Enter your Name" />
+                  <input type="text" name="name" placeholder="Enter your Name" required />
                 </div>
                 <div className="form-field">
                   <label>Your Email</label>
-                  <input type="email" placeholder="Enter the Email" />
+                  <input type="email" name="email" placeholder="Enter the Email" required />
                 </div>
                 <div className="form-field">
                   <label>Project Description</label>
                   <textarea
+                    name="message"
                     placeholder="Type Here..."
                     rows="1"
+                    required
                     onInput={(e) => {
                       e.target.style.height = 'auto'
                       e.target.style.height = e.target.scrollHeight + 'px'
                     }}
                   />
                 </div>
-                <button type="submit" className="contact-submit">SEND NOW!</button>
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="hp-field"
+                />
+                <button type="submit" className="contact-submit" disabled={formStatus === 'sending'}>
+                  {formStatus === 'sending' ? 'SENDING...' : 'SEND NOW!'}
+                </button>
+                {formStatus !== 'idle' && (
+                  <p className={`form-status ${formStatus}`} role="status">
+                    {formStatus === 'sending' && 'Sending your message...'}
+                    {formStatus === 'success' && "Message sent! We'll get back to you soon."}
+                    {formStatus === 'error' && formError}
+                  </p>
+                )}
               </form>
               </div>
             </div>
@@ -781,8 +942,8 @@ function App() {
             <h4 className="footer-heading">Social</h4>
             <nav className="footer-links">
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">TWITTER(X)</a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LINKEDIN</a>
-              <a href="https://dribbble.com" target="_blank" rel="noopener noreferrer">DRIBBLE</a>
+              <a href="https://www.linkedin.com/company/boltzmakeitmad/" target="_blank" rel="noopener noreferrer">LINKEDIN</a>
+              <a href="https://www.instagram.com/boltzdot/" target="_blank" rel="noopener noreferrer">INSTAGRAM</a>
             </nav>
           </div>
 
