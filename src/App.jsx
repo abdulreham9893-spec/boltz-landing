@@ -611,14 +611,14 @@ function App() {
         </h2>
         <div className="pills-container">
           <div className="pills-row">
-            <div className="pill"><span className="pill-icon">✦</span><span className="pill-label">Branding</span></div>
-            <div className="pill"><span className="pill-icon">◎</span><span className="pill-label">Logo</span></div>
-            <div className="pill"><span className="pill-icon">◎</span><span className="pill-label">Website</span></div>
+            <div className="pill"><img className="pill-icon pill-icon-img" src="/pill-branding.png" alt="" /><span className="pill-label">Branding</span></div>
+            <div className="pill"><img className="pill-icon pill-icon-img" src="/pill-logo.png" alt="" /><span className="pill-label">Logo</span></div>
+            <div className="pill"><img className="pill-icon pill-icon-img" src="/pill-website.png" alt="" /><span className="pill-label">Website</span></div>
           </div>
           <div className="pills-row">
-            <div className="pill"><span className="pill-icon">♧</span><span className="pill-label">Motion Design</span></div>
-            <div className="pill"><span className="pill-icon">◇</span><span className="pill-label">UI/UX</span></div>
-            <div className="pill"><span className="pill-icon">◎</span><span className="pill-label">CMS Website</span></div>
+            <div className="pill"><img className="pill-icon pill-icon-img" src="/pill-motion.png" alt="" /><span className="pill-label">Motion Design</span></div>
+            <div className="pill"><img className="pill-icon pill-icon-img" src="/pill-uxui.png" alt="" /><span className="pill-label">UI/UX</span></div>
+            <div className="pill"><img className="pill-icon pill-icon-img" src="/pill-cms.png" alt="" /><span className="pill-label">CMS Website</span></div>
           </div>
         </div>
       </section>
