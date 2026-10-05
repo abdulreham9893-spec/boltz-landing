@@ -1,16 +1,36 @@
-# React + Vite
+# BOLTZ landing page
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Vite + React single-page site for BOLTZ, with a contact form that stores submissions in Postgres on Vercel.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+npm run build
+npm run lint
+```
 
-## React Compiler
+## Contact form database (Vercel + Neon Postgres)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The form posts JSON to `POST /api/contact` (`api/contact.js`) and inserts a row into `contact_submissions`.
 
-## Expanding the Oxlint configuration
+Setup, once, on Vercel:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+1. Project -> **Storage** -> **Create Database** -> **Neon** (Postgres). Neon is Vercel's Postgres provider; Vercel Postgres was retired in its favour.
+2. Vercel adds the connection string as an environment variable automatically. If the name differs, set `POSTGRES_URL` manually (the route also accepts `DATABASE_URL`, `NEON_DATABASE_URL`, `POSTGRES_URL_UNPOOLED`, `DATABASE_URL_UNPOOLED`).
+3. Deploy. The route creates the table on the first submission.
+
+The table is also defined in `db/schema.sql` if you would rather run it yourself in the Neon SQL editor.
+
+Read submissions in the Neon console:
+
+```sql
+SELECT * FROM contact_submissions ORDER BY created_at DESC;
+```
+
+For local testing, copy `.env.example` to `.env` and paste your connection string. Local `.env` files are gitignored.
+
+Stored per submission: `name`, `email`, `company`, `budget`, `project_type`, `message`, referrer, user agent, and timestamp. IP addresses are not stored.
+
+The form includes a hidden `website` honeypot field. Submissions that fill it return success without writing a row.

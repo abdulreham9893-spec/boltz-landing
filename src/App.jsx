@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Link } from 'react-router-dom'
 import './App.css'
 import Services from './pages/Services.jsx'
+import Privacy from './pages/Privacy.jsx'
+import Terms from './pages/Terms.jsx'
 import Navbar from './components/Navbar.jsx'
 import Letters from './components/Letters.jsx'
 
@@ -28,6 +30,7 @@ function App() {
   const [faqVisible, setFaqVisible] = useState(false)
   const [isInView, setIsInView] = useState(false)
   const [testimonialsVisible, setTestimonialsVisible] = useState(false)
+  const [tscIndex, setTscIndex] = useState(0)
   const [openFaq, setOpenFaq] = useState(-1)
   const worksRef = useRef(null)
   const [scrollProgress, setScrollProgress] = useState(0)
@@ -45,27 +48,33 @@ function App() {
   const [formStatus, setFormStatus] = useState('idle')
   const [formError, setFormError] = useState('')
 
-  function handleContactSubmit(e) {
+  async function handleContactSubmit(e) {
     e.preventDefault()
     if (formStatus === 'sending') return
     const form = e.target
+    const fields = Object.fromEntries(new FormData(form).entries())
     setFormStatus('sending')
     setFormError('')
-    fetch('/send.php', { method: 'POST', body: new FormData(form) })
-      .then(async (res) => {
-        let data = {}
-        try { data = await res.json() } catch { /* non-JSON response */ }
-        if (!res.ok || !data.ok) {
-          throw new Error(data.error || 'Something went wrong. Please try again.')
-        }
-        setFormStatus('success')
-        form.reset()
-        setTimeout(() => setFormStatus('idle'), 6000)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fields),
       })
-      .catch((err) => {
-        setFormStatus('error')
-        setFormError(err.message || 'Failed to send. Please email helloboltz@gmail.com directly.')
-      })
+      let data = {}
+      try { data = await res.json() } catch { /* non-JSON response */ }
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Something went wrong. Please try again.')
+      }
+      form.reset()
+      const textarea = form.querySelector('textarea')
+      if (textarea) textarea.style.height = ''
+      setFormStatus('success')
+      setTimeout(() => setFormStatus('idle'), 6000)
+    } catch (err) {
+      setFormStatus('error')
+      setFormError(err.message || 'Failed to send. Please email helloboltz@gmail.com directly.')
+    }
   }
 
   const serviceCards = [
@@ -449,11 +458,11 @@ function App() {
 
   const faqs = [
     { q: 'WHY BOLTZ INSTEAD OF HIRING IN-HOUSE?', a: 'We combine senior-level design and development into one focused team, so you get agency quality at a fraction of the cost and time of a full in-house hire.' },
-    { q: 'HOW FAST DO YOU DELIVER?', a: 'Most projects kick off within 2–3 days and ship a first version in about two weeks. Every timeline comes with clear milestones before we start.' },
-    { q: 'WHAT DOES THE PROCESS LOOK LIKE?', a: 'We begin with a discovery call, then move through design, build, and launch — with weekly check-ins and live demos at every stage.' },
-    { q: "WHAT IF I DON'T LIKE THE DESIGN?", a: 'We present multiple directions early and iterate until you are happy. Our goal is to nail it during revisions, not surprise you at the end.' },
-    { q: 'HOW DO I GET STARTED?', a: 'Just hit the contact button and tell us about your project. We respond within 24 hours with next steps and a ballpark quote.' },
-    { q: 'ARE THERE REFUNDS?', a: 'We offer full deposit refunds before production begins. Once design work starts, our standard milestone terms apply.' },
+    { q: 'HOW FAST DO YOU DELIVER?', a: 'Most design projects wrap in 5–10 business days. Full website builds take 4–6 weeks depending on scope. We’ll agree on a timeline upfront.' },
+    { q: 'WHAT DOES THE PROCESS LOOK LIKE?', a: 'Discovery → Design → Review → Development → Launch. You’re involved at every stage and we keep communication tight throughout.' },
+    { q: "WHAT IF I DON'T LIKE THE DESIGN?", a: 'We offer revision rounds built into every project. If we’re off-track, we revisit — your satisfaction is non-negotiable.' },
+    { q: 'HOW DO I GET STARTED?', a: 'Fill out the contact form or email us. We’ll schedule a quick call to understand your project and send a proposal within 24–48 hours.' },
+    { q: 'ARE THERE REFUNDS?', a: 'We don’t offer full refunds after work begins, but we’re committed to getting it right. We’ll revise until you’re happy.' },
   ]
 
   const marqueeItems2 = [
@@ -494,6 +503,45 @@ function App() {
     { icon: '☰', label: 'CMS Website' },
   ]
 
+  const tscSlides = [
+    {
+      text: 'Franklin turned our ideas into a sharp, clean brand. Fast, easy, and right on point.',
+      name: 'Ethan Moore',
+      role: 'Co-founder, NovaTech',
+      image: '/monkeytilt.jpg',
+    },
+    {
+      text: 'They transformed our outdated site into a conversion machine. Professional, creative, and on-time!',
+      name: 'Isa Kose',
+      role: 'Founder, Hypnose Praktijk',
+      image: '/screenrent.png',
+    },
+    {
+      text: 'They brought our new brand vision to life — flexible, aligned, and easy to work with from start to finish.',
+      name: 'Keefe Dashiell',
+      role: 'Founder, After Life Initiative',
+      image: '/house.jpeg',
+    },
+    {
+      text: 'They rebuilt our site and the conversion lift showed up in the first month.',
+      name: 'Marcus Lee',
+      role: 'Head of Growth, Rivet Labs',
+      image: '/air.jpeg',
+    },
+    {
+      text: 'Clean process, sharp design, zero drama. Exactly what we needed from an agency.',
+      name: 'Sofia Anders',
+      role: 'Marketing Director, Bloomline',
+      image: '/jet.jpeg',
+    },
+    {
+      text: 'From brand to build in weeks, not months — and it still feels considered.',
+      name: 'Daniel Okafor',
+      role: 'CEO, NorthPeak',
+      image: '/eop.jpeg',
+    },
+  ]
+
   const projects = [
     {
       id: 1,
@@ -501,27 +549,27 @@ function App() {
       year: '2025',
       role: 'Lead Designer',
       services: ['Website Design', 'Product Design', 'Branding', 'Development'],
-      description: "A cinematic rental marketplace where every frame drives conversion.",
+      description: "We’ve helped businesses across industries achieve their goals. Here are some of our selected works.",
       image: '/screenrent.png',
       glow: 'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.06), transparent 62%)',
     },
     {
       id: 2,
       title: 'JOMI',
-      year: '2024',
+      year: '2018',
       role: 'Logo Design',
       services: ['Designing', 'Branding', 'Redesigning', 'Development'],
-      description: "Rebuilding a legacy brand into a sharp, scalable digital identity.",
+      description: "We’ve partnered with businesses across various industries to help them achieve their goals.",
       image: '/1st-slide.png',
       glow: 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.06), transparent 62%)',
     },
     {
       id: 3,
-      title: 'PIXELFLOW',
-      year: '2024',
+      title: 'MONKEYTILT',
+      year: '2023',
       role: 'Web Designer',
       services: ['Branding', 'Revamp', 'Development', 'Designing'],
-      description: "A motion-first product app with fluid, expressive interactions.",
+      description: "We’ve collaborated with companies from diverse sectors to turn their visions into reality. Here’s a look at some of our featured work.",
       image: '/m1.png',
       glow: 'radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.06), transparent 62%)',
     },
@@ -623,29 +671,6 @@ function App() {
         </div>
       </section>
 
-      <section className="testimonials-section" ref={testimonialsRef}>
-        <div className={`testimonials-header ${testimonialsVisible ? 'visible' : ''}`}>
-          <p className="why-text">(Why clients love us)</p>
-          <h2 className="testimonials-title"><Letters text="TESTIMONIALS" /></h2>
-        </div>
-        <div className="testimonials-grid">
-          {testimonialData.map((t, i) => (
-            <div className={`testimonial-card-new ${testimonialsVisible ? 'visible' : ''}`} key={i} style={{ transitionDelay: `${i * 0.15}s` }}>
-              <span className="tc-num">{t.num}</span>
-              <span className="tc-quote-mark">&#x201C;</span>
-              <p className="tc-text">{t.text}</p>
-              <div className="tc-author">
-                <img className="tc-avatar" src={t.avatar} alt={t.name} />
-                <div className="tc-author-info">
-                  <span className="tc-name">{t.name}</span>
-                  <span className="tc-role">↳ {t.role}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       <section id="works" className="works-section">
         <div className="works-header">
           <p className="selected-text">(Selected Work)</p>
@@ -712,7 +737,7 @@ function App() {
         </div>
       </section>
 
-      <section className="capabilities-section">
+      <section id="services" className="capabilities-section">
         <div className="capabilities-header visible">
           <p className="capabilities-kicker">(Services)</p>
           <h2 className="capabilities-title"><Letters text="WHAT WE DO" /></h2>
@@ -727,6 +752,7 @@ function App() {
               <img src="/mockup.jpg" alt="UI/UX Design" loading="lazy" />
             </div>
             <div className="shc-overlay" />
+            <span className="shc-num">01</span>
             <img className="shc-icon-img" src="/icon-uiux.png" alt="" />
             <div className="shc-content">
               <h3 className="shc-title">UI/UX Design</h3>
@@ -739,6 +765,7 @@ function App() {
               <img src="/Service.jpg" alt="SaaS Design" loading="lazy" />
             </div>
             <div className="shc-overlay" />
+            <span className="shc-num">02</span>
             <img className="shc-icon-img" src="/icon-saas.png" alt="" />
             <div className="shc-content">
               <h3 className="shc-title">SaaS Design</h3>
@@ -751,6 +778,7 @@ function App() {
               <img src="/screenrent.png" alt="Framer Website" loading="lazy" />
             </div>
             <div className="shc-overlay" />
+            <span className="shc-num">03</span>
             <img className="shc-icon-img" src="/icon-framer.png" alt="" />
             <div className="shc-content">
               <h3 className="shc-title">Framer Website</h3>
@@ -763,6 +791,7 @@ function App() {
               <img src="/m1.png" alt="Strategic Brand Design" loading="lazy" />
             </div>
             <div className="shc-overlay" />
+            <span className="shc-num">04</span>
             <img className="shc-icon-img" src="/icon-brand.png" alt="" />
             <div className="shc-content">
               <h3 className="shc-title">STRATEGIC BRAND DESIGN</h3>
@@ -785,6 +814,50 @@ function App() {
           >
             →
           </button>
+        </div>
+      </section>
+
+      <section className="testimonials-section" ref={testimonialsRef}>
+        <div className={`testimonials-header ${testimonialsVisible ? 'visible' : ''}`}>
+          <p className="why-text">(Why clients love us)</p>
+          <h2 className="testimonials-title"><Letters text="TESTIMONIALS" /></h2>
+        </div>
+        <div className="tsc">
+          <div className="tsc-stats">
+            <img className="tsc-stats-img" src="/contact-bg.jpg" alt="" />
+            <div className="tsc-stats-shade" />
+            <div className="tsc-stat">
+              <span className="tsc-stat-num">26+</span>
+              <span className="tsc-stat-label">Finalized Projects</span>
+            </div>
+            <div className="tsc-stat">
+              <span className="tsc-stat-num">400%</span>
+              <span className="tsc-stat-label">Increased Conversion Rate</span>
+            </div>
+            <div className="tsc-stat">
+              <span className="tsc-stat-num">20</span>
+              <span className="tsc-stat-label">Organic Traffic</span>
+            </div>
+          </div>
+
+          <div className="tsc-slide">
+            <img className="tsc-slide-img" src={tscSlides[tscIndex].image} alt="" />
+            <div className="tsc-slide-shade" />
+            <span className="tsc-counter">
+              {String(tscIndex + 1).padStart(2, '0')} / {String(tscSlides.length).padStart(2, '0')}
+            </span>
+            <div className="tsc-body" key={tscIndex}>
+              <p className="tsc-quote">&#x201C;{tscSlides[tscIndex].text}&#x201D;</p>
+              <div className="tsc-author">
+                <span className="tsc-name">{tscSlides[tscIndex].name}</span>
+                <span className="tsc-role">{tscSlides[tscIndex].role}</span>
+              </div>
+            </div>
+            <div className="tsc-arrows">
+              <button type="button" className="tsc-arrow" aria-label="Previous testimonial" onClick={() => setTscIndex((i) => (i - 1 + tscSlides.length) % tscSlides.length)}>‹</button>
+              <button type="button" className="tsc-arrow" aria-label="Next testimonial" onClick={() => setTscIndex((i) => (i + 1) % tscSlides.length)}>›</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -934,7 +1007,7 @@ function App() {
             <nav className="footer-links">
               <a href="#about">ABOUT</a>
               <a href="#works">WORKS</a>
-              <a href="#services">SERVICES</a>
+              <a href="#services" onClick={(e) => { const el = document.getElementById('services'); if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }) } }}>SERVICES</a>
             </nav>
           </div>
 
@@ -950,8 +1023,8 @@ function App() {
           <div className="footer-col">
             <h4 className="footer-heading">Legals</h4>
             <nav className="footer-links">
-              <a href="#privacy">PRIVACY POLICY</a>
-              <a href="#terms">TERM OF SERVICE</a>
+              <Link to="/privacy">PRIVACY POLICY</Link>
+              <Link to="/terms">TERM OF SERVICE</Link>
             </nav>
           </div>
         </div>
@@ -974,6 +1047,8 @@ function App() {
     </div>
     } />
       <Route path="/services" element={<Services />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
     </Routes>
   )
 }

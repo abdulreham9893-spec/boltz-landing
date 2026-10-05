@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar.jsx'
 import Letters from '../components/Letters.jsx'
 
@@ -16,27 +17,33 @@ function Services() {
   const [formStatus, setFormStatus] = useState('idle')
   const [formError, setFormError] = useState('')
 
-  function handleContactSubmit(e) {
+  async function handleContactSubmit(e) {
     e.preventDefault()
     if (formStatus === 'sending') return
     const form = e.target
+    const fields = Object.fromEntries(new FormData(form).entries())
     setFormStatus('sending')
     setFormError('')
-    fetch('/send.php', { method: 'POST', body: new FormData(form) })
-      .then(async (res) => {
-        let data = {}
-        try { data = await res.json() } catch { /* non-JSON response */ }
-        if (!res.ok || !data.ok) {
-          throw new Error(data.error || 'Something went wrong. Please try again.')
-        }
-        setFormStatus('success')
-        form.reset()
-        setTimeout(() => setFormStatus('idle'), 6000)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fields),
       })
-      .catch((err) => {
-        setFormStatus('error')
-        setFormError(err.message || 'Failed to send. Please email helloboltz@gmail.com directly.')
-      })
+      let data = {}
+      try { data = await res.json() } catch { /* non-JSON response */ }
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Something went wrong. Please try again.')
+      }
+      form.reset()
+      const textarea = form.querySelector('textarea')
+      if (textarea) textarea.style.height = ''
+      setFormStatus('success')
+      setTimeout(() => setFormStatus('idle'), 6000)
+    } catch (err) {
+      setFormStatus('error')
+      setFormError(err.message || 'Failed to send. Please email helloboltz@gmail.com directly.')
+    }
   }
 
   useEffect(() => {
@@ -166,11 +173,11 @@ function Services() {
 
   const faqs = [
     { q: 'WHY BOLTZ INSTEAD OF HIRING IN-HOUSE?', a: 'We combine senior-level design and development into one focused team, so you get agency quality at a fraction of the cost and time of a full in-house hire.' },
-    { q: 'HOW FAST DO YOU DELIVER?', a: 'Most projects kick off within 2–3 days and ship a first version in about two weeks. Every timeline comes with clear milestones before we start.' },
-    { q: 'WHAT DOES THE PROCESS LOOK LIKE?', a: 'We begin with a discovery call, then move through design, build, and launch — with weekly check-ins and live demos at every stage.' },
-    { q: "WHAT IF I DON'T LIKE THE DESIGN?", a: 'We present multiple directions early and iterate until you are happy. Our goal is to nail it during revisions, not surprise you at the end.' },
-    { q: 'HOW DO I GET STARTED?', a: 'Just hit the contact button and tell us about your project. We respond within 24 hours with next steps and a ballpark quote.' },
-    { q: 'ARE THERE REFUNDS?', a: 'We offer full deposit refunds before production begins. Once design work starts, our standard milestone terms apply.' },
+    { q: 'HOW FAST DO YOU DELIVER?', a: 'Most design projects wrap in 5–10 business days. Full website builds take 4–6 weeks depending on scope. We’ll agree on a timeline upfront.' },
+    { q: 'WHAT DOES THE PROCESS LOOK LIKE?', a: 'Discovery → Design → Review → Development → Launch. You’re involved at every stage and we keep communication tight throughout.' },
+    { q: "WHAT IF I DON'T LIKE THE DESIGN?", a: 'We offer revision rounds built into every project. If we’re off-track, we revisit — your satisfaction is non-negotiable.' },
+    { q: 'HOW DO I GET STARTED?', a: 'Fill out the contact form or email us. We’ll schedule a quick call to understand your project and send a proposal within 24–48 hours.' },
+    { q: 'ARE THERE REFUNDS?', a: 'We don’t offer full refunds after work begins, but we’re committed to getting it right. We’ll revise until you’re happy.' },
   ]
 
   return (
@@ -197,7 +204,7 @@ function Services() {
         </p>
       </section>
 
-      <section className="services-what-section" ref={whatRef}>
+      <section id="services" className="services-what-section" ref={whatRef}>
         <p className="services-what-label">(Services)</p>
         <h2 className={`services-what-title ${whatVisible ? 'is-visible' : ''}`}>
           <Letters text="WHAT WE DO" start={0} />
@@ -454,7 +461,7 @@ function Services() {
             <nav className="footer-links">
               <a href="#about">ABOUT</a>
               <a href="#works">WORKS</a>
-              <a href="#services">SERVICES</a>
+              <a href="#services" onClick={(e) => { const el = document.getElementById('services'); if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }) } }}>SERVICES</a>
             </nav>
           </div>
 
@@ -470,8 +477,8 @@ function Services() {
           <div className="footer-col">
             <h4 className="footer-heading">Legals</h4>
             <nav className="footer-links">
-              <a href="#privacy">PRIVACY POLICY</a>
-              <a href="#terms">TERM OF SERVICE</a>
+              <Link to="/privacy">PRIVACY POLICY</Link>
+              <Link to="/terms">TERM OF SERVICE</Link>
             </nav>
           </div>
         </div>
